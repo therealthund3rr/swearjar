@@ -12,3 +12,4 @@ One line per decision taken during the build that `CLAUDE.md` did not settle. Ne
 - 2026-11-12: Base tier ids (mild, strong, blasphemy, slur) are always present in a RuleSet, so the lexicon fallback can price a hit under any custom house rules.
 - 2026-11-12: Family-mode sponsored players are covered by one parent hold of cap × (1 + sponsored players); settlement captures the sum of each covered player's fines (each clamped to the per-player cap) from that one authorization.
 - 2026-11-12: Render free instances have an ephemeral disk and sleep after inactivity: snapshots to DATA_DIR only survive process restarts, not redeploys. Accepted for a demo.
+- 2026-11-12: Background test (Chrome tab hidden behind full-screen Minecraft, Windows 11): Web Speech kept delivering final results while hidden. Recommended setup: the Swear Jar tab open in Chrome next to the game; phone on the desk as the alternative.
