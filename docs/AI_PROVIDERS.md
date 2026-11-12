@@ -19,7 +19,7 @@ Only text is ever sent to the AI (finished sentences, the house rules, the fines
 ```
 AI_BASE_URL=https://api.groq.com/openai/v1
 AI_API_KEY=gsk_...
-AI_MODEL_FAST=llama-3.1-8b-instant
+AI_MODEL_FAST=openai/gpt-oss-20b
 AI_MODEL_SMART=openai/gpt-oss-120b
 ```
 Model names and free limits change: check the models page in the Groq console. Swear Jar batches the judge calls (one every ~3 s for the whole session) to stay inside free rate limits, and falls back to the lexicon if it gets rate-limited.

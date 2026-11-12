@@ -8,7 +8,7 @@ services:
     healthCheckPath: /api/health
     envVars:
       - key: NODE_VERSION
-        value: "20"
+        value: "22"
       - key: PAYPAL_API_BASE
         value: https://api-m.sandbox.paypal.com
       - key: CURRENCY
@@ -18,7 +18,7 @@ services:
       - key: AI_BASE_URL
         value: https://api.groq.com/openai/v1
       - key: AI_MODEL_FAST
-        value: llama-3.1-8b-instant
+        value: openai/gpt-oss-20b
       - key: AI_MODEL_SMART
         value: openai/gpt-oss-120b
       - key: PAYPAL_CLIENT_ID
