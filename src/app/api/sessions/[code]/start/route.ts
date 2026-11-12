@@ -12,8 +12,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ code: s
       if (s.status === "live") return { ok: true };
       if (s.status !== "lobby") throw new HttpError(409, "Session already ended");
       if (!s.jar.rulesConfirmed) throw new HttpError(409, "Confirm the house rules first");
-      if (!Object.values(s.players).some((p) => p.hold?.status === "on_hold"))
-        throw new HttpError(409, "At least one player needs a PayPal hold");
+      // Every paying player must have a hold: a fine on a player without an authorization could never be collected.
+      const missing = Object.values(s.players).filter((p) => p.sponsorId === null && p.hold?.status !== "on_hold");
+      if (missing.length > 0)
+        throw new HttpError(409, `Waiting for PayPal holds: ${missing.map((p) => p.name).join(", ")}`);
       s.status = "live";
       s.startedAt = Date.now();
       return { ok: true };
