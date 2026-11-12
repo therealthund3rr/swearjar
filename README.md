@@ -1,146 +1,175 @@
 # Swear Jar
 
 [![PayPal Sandbox](https://img.shields.io/badge/PayPal-sandbox-003087)](https://developer.paypal.com)
-[![AI: open models](https://img.shields.io/badge/AI-Groq%20%7C%20local%20LM%20Studio-F55036)](#how-the-ai-decides)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-**The swear jar, rebuilt: an AI that actually listens, and PayPal that actually collects. Put a hold on the jar, talk, and pay only for what you said.**
+A swear jar that listens. Put a PayPal hold on the jar, talk, and pay only for what you said.
 
-Two ways to play:
-- 🍕 **Party:** friends before a game night. Everyone's fines go to the dinner fund, so the worst mouth pays most of the pizza.
-- 🏡 **Family:** a parent covers the kids (no PayPal needed for them), fines go to a cause the family picked, and every fine comes with a cleaner word to use next time. Everyone sees the jar: it is a game you play together, not a spy tool.
+**Live demo:** https://swearjar-4wsb.onrender.com (free Render instance: the first load can take about a minute)
+**Video:** VIDEO_URL_HERE
 
-<!-- HERO: replace with docs/media/hero.gif (jar filling with coins during a session, ~800 px wide, 5-10 s loop). See docs/media/README.md. -->
+Built for the [PayPal AI Hackathon](https://paypalaihackathon.devpost.com) 2026. **Sandbox only. No real money.**
 
-**Live demo:** _<Render URL goes here>_ · **Video (under 3 min):** _<YouTube link goes here>_
+![Live session: the jar on the desktop screen](docs/media/screens/04-live-desktop.png)
 
-Built for the [PayPal AI Hackathon](https://paypalaihackathon.devpost.com) 2026. **Sandbox only: no real money moves.**
+| Home | Live | Final bill |
+|---|---|---|
+| ![Home](docs/media/screens/01-home.png) | ![Live session](docs/media/screens/04-live.png) | ![Final bill](docs/media/screens/05-end.png) |
 
-<!-- ARCHITECTURE: docs/media/architecture.png goes in "How PayPal is used" once generated. SCREENSHOTS: add a 5-column table of docs/media/screens/*.png under "How it works". -->
+![Architecture](docs/media/architecture.svg)
 
 ## How it works
 
-1. **Hold.** Everyone joining a jar approves a PayPal authorization for the cap, say $10. Nothing is charged yet.
-2. **Talk.** Each player's own phone or browser transcribes only their speech. An AI judge reads every sentence in context, using house rules the group wrote in plain language ("blasphemy $2, swears 50¢, 'damn' is free, double during penalty kicks"). Fines drop into the jar live, and anyone can shout **Objection!**
-3. **Settle.** When the session ends, PayPal captures exactly what each player owes from their own hold, never more than the cap. Anyone with a clean mouth gets their hold voided. The money goes to the jar's beneficiary: a charity or the group's pizza fund.
-
-### Playing in a voice chat
-
-Made for friends gaming in a voice chat (Discord, in-game voice, any call) with headsets. Each player keeps the Swear Jar page open on the PC they play on, or on their phone next to them. It listens only to its owner, locally, so everyone is judged on their own voice, no bot hears the call, and muting yourself in the call does not hide you from the jar. In the same room, keep phones close: if two phones catch the same word, only the first one is fined and the group can contest it.
-
-### "The worst mouth pays the dinner"
-
-Fines are proportional: everyone pays exactly what they said into the dinner fund, so the worst mouth pays most of the pizza and the clean ones eat almost free. There is deliberately no "loser pays everything" mode: Swear Jar is a commitment device for your own words, not a prize game.
-
-## Status: hackathon build
-
-Swear Jar was built in one day for a hackathon. Be realistic about what that means.
-
-What works:
-
-- _Fill in at the end of the build: only list what was tested end to end._
-
-What is rough or not proven:
-
-- Speech recognition uses the browser's Web Speech API: it works in Chrome and Edge, it is unreliable on Safari/iOS (use type mode there), and it mishears words, especially in dialect.
-- The AI judge was checked on a small set of Italian and English sentences, not benchmarked.
-- The server keeps sessions in memory with a JSON snapshot. One instance, no database. Fine for a demo, not for production.
-- Sandbox only. Moving to live PayPal would need a review of the payee model, fees and terms.
+1. **Hold.** Every player approves a PayPal authorization for the jar's cap (for example $10). Nothing is charged yet. A session cannot start until every player has an approved hold, and a player without a hold cannot be fined.
+2. **Talk.** Each player's browser transcribes that player's own speech on that player's own device. The AI judge reads each sentence in context against the house rules the group wrote in plain language (for example: "blasphemy $2, swears 50 cents, 'damn' is free"). Fines appear in the jar live. Any player can object within 30 seconds.
+3. **Settle.** When the session ends, PayPal captures exactly what each player owes from their own hold, never more than the cap. A player with no fines gets the hold voided. Settlement is idempotent, and a failed capture can be retried per player.
 
 ## How PayPal is used
 
-The whole money flow is PayPal's **authorize, then capture or void** model (Orders v2 + Payments v2):
+The app uses PayPal's authorize, then capture or void, flow with Orders v2 and Payments v2. All PayPal calls run on the server.
 
 | When | Call | Why |
 |---|---|---|
-| A player joins | `POST /v2/checkout/orders` with `intent: AUTHORIZE`, amount = cap, approved with the PayPal JS SDK buttons | The player sees and approves the maximum they can lose up front |
-| After approval | `POST /v2/checkout/orders/{id}/authorize` | Funds are held, not taken |
-| Session ends, fines > 0 | `POST /v2/payments/authorizations/{id}/capture` with the exact total and `final_capture: true` | One partial capture; the rest of the hold is released |
-| Session ends, no fines | `POST /v2/payments/authorizations/{id}/void` | Clean mouth, nothing charged |
+| A player joins | `POST /v2/checkout/orders` with `intent: AUTHORIZE`, the cap as amount, the beneficiary as `payee` | Creates the hold order |
+| The player approves | PayPal JS SDK buttons in the browser, then `POST /v2/checkout/orders/{id}/authorize` | Funds are held, not taken |
+| Session ends, player has fines | `POST /v2/payments/authorizations/{id}/capture` with the fines total and `final_capture: true` | One capture for exactly what is owed. It is never above the hold, and the rest is released |
+| Session ends, player is clean | `POST /v2/payments/authorizations/{id}/void` | Nothing charged |
 
-Every write call carries a `PayPal-Request-Id`, so retries and double clicks cannot charge twice. Amounts are integer cents in the code. The client secret never leaves the server.
+Every write call sends a `PayPal-Request-Id` header. The key includes the order or authorization id, because a replayed key returns the old order. Money is integer cents everywhere in the code. The client secret stays on the server.
+
+Public receipts (`/r/{id}`) show amounts and statuses only.
 
 ## How the AI decides
 
-The AI classifies; **code decides the money.**
+The AI classifies. Code decides the money.
 
-- **Rule compiler.** The group's rules, written in any language, are turned into a typed rule set (tiers, prices, free words, multipliers). The jar creator reviews it as a table and confirms it before anyone can join. Prices are clamped by code to the cap.
-- **Live judge.** Every finished sentence is checked in context with the previous ones from the same player. It tells a swear from a mention ("the word 'cazzo' comes from Latin"), sees through dodges ("p0rc0 d**"), respects allowed words, and handles dialects and mixed languages. It returns JSON with a confidence score. Code drops mentions and low-confidence hits, sends uncertain ones to a player vote, prices the rest from the rules and never lets a player's total pass their cap.
-- **Report.** At the end, a short, kind recap per player: top word, worst minute, a title, and two cleaner alternatives for next time.
-- **Free and local-capable.** The AI is any OpenAI-compatible endpoint: the hosted demo uses open models on Groq's free tier; at home you can point it at a local model in LM Studio so nothing leaves your PC. With no AI configured, a built-in Italian/English word list does the judging, with a visible "lexicon mode" badge.
-
-Hateful slurs are not treated as a game: they are hidden from the feed, charged at the top tier, and never joked about.
+- **Rule compiler.** The house rules become a validated price list. The jar creator reviews it as a table and confirms it before anyone can join. The AI never sets an amount.
+- **Live judge.** One batched call about every 3 seconds covers the whole session. For each hit, the judge tells a swear from a mention of a word, and catches dodges such as asterisk-masked words and leetspeak. Each hit gets a confidence score. Code prices the hits from the approved rules and clamps the total to the player's cap. The AI never calls PayPal.
+- **Report.** At the end, each player gets a short report.
+- **Fallbacks.** With no AI key, the app runs in word-list mode, using a built-in list of about 85 English and Italian roots. If the AI is rate-limited or times out, that batch falls back to the word list and the screen shows "AI busy".
 
 ## AI providers
 
-No paid AI is required. The app speaks to any OpenAI-compatible endpoint, set in `.env`:
-
-- **Groq free tier** (used by the hosted demo),
-- **LM Studio or Ollama on your own machine**, so not even text leaves your computer,
-- **your own key** for any compatible provider,
-- or **nothing**: lexicon mode.
-
-Setup for each: [docs/AI_PROVIDERS.md](docs/AI_PROVIDERS.md).
+The app talks to any OpenAI-compatible endpoint, set only through environment variables. The hosted demo uses Groq's free tier with `openai/gpt-oss-20b` (judge) and `openai/gpt-oss-120b` (rules and report). LM Studio and Ollama should work through the same settings, but they are not tested in this build. Details in [docs/AI_PROVIDERS.md](docs/AI_PROVIDERS.md).
 
 ## Privacy
 
-- Swear Jar never records or uploads audio. Transcription happens in the browser. Note that Chrome's and Edge's speech recognition sends audio to the browser vendor's speech service; that is outside this app's control.
-- Only finished text sentences reach the server. Sentences without a fine are not stored (only the last three are kept in memory as context for the judge). Fined words are shown masked to other players.
-- Everyone in a jar sees everyone's fines; the lobby says so before you join.
-- Session data is deleted 24 hours after the session ends. Receipts keep only amounts, statuses and PayPal IDs.
+- The app does not record or upload audio. Speech is transcribed in the browser. Chrome and Edge send that audio to their speech service, which this app does not control.
+- Only finished sentences reach the server. The server keeps the last three sentences per player in memory as judge context. Snapshots do not store that text.
+- Fined words are shown as censor bars in the UI.
+- Everyone in a jar can see everyone's fines. The join page says so.
+- Receipts keep amounts, statuses and PayPal ids.
+
+## Try it
+
+**Hosted demo:** https://swearjar-4wsb.onrender.com
+
+1. You need a PayPal sandbox buyer account (a personal account from the Developer Dashboard).
+2. Use Chrome or Edge with a microphone. On other browsers, use type mode.
+3. Create a jar. Leave the optional beneficiary email empty.
+4. Open the join link, and approve the hold with the sandbox buyer account.
+5. Start the session. With one player, the button reads "Start a solo test run".
+6. To play a scripted conversation instead of speaking, add `?demo=1` to the session URL.
 
 ## Run it locally
 
-Prerequisites: Node.js 20+, a [PayPal developer account](https://developer.paypal.com) (free), and optionally a free [Groq API key](https://console.groq.com) or [LM Studio](https://lmstudio.ai) running a local model.
+Prerequisites: Node.js 20 or newer, and a PayPal developer account (free). A Groq key is optional. Without one, the app runs in word-list mode.
 
-1. In the PayPal Developer Dashboard, sandbox mode: create an app (REST API) and copy its client ID and secret. Under **Sandbox accounts**, make sure you have at least one **personal** (buyer) account and one **business** account to act as the beneficiary.
-2. Clone and configure:
+### PayPal sandbox setup
+
+1. In the [PayPal Developer Dashboard](https://developer.paypal.com), open **Apps & Credentials** in sandbox mode. Create an app (REST API) and copy its client ID and secret.
+2. Under **Sandbox accounts**, make sure you have:
+   - two **personal** accounts, to act as buyers,
+   - one **business** account, to act as the beneficiary.
+
+### Steps
 
 ```
 git clone https://github.com/therealthund3rr/swearjar.git
 cd swearjar
 npm install
-cp .env.example .env      # fill in the PayPal keys, the beneficiary email and (optionally) the AI endpoint
-npm run dev               # http://localhost:3000
+cp .env.example .env     # fill in the PayPal keys and BENEFICIARY_EMAIL
+npm run dev              # http://localhost:3000
 ```
 
-3. Create a jar, open the join link in a second browser profile, and approve the hold with a sandbox buyer account. Use Chrome or Edge for the microphone, or type mode anywhere. Add `?demo=1` to the session URL to play a scripted conversation instead of speaking.
+Optional AI: set `AI_API_KEY` for Groq, or point `AI_BASE_URL` at another OpenAI-compatible endpoint. See `.env.example`.
 
-Checks:
+Then create a jar, open the join link in a second browser profile, and approve the hold with a sandbox buyer account.
 
-```
-npm test            # unit tests (vitest): money, lexicon, fines, settlement
-npm run typecheck
-npm run lint
-npm run build
-```
+Scripts:
 
-A Postman collection of the app's API is in [`postman/`](postman/).
+| Command | What it does |
+|---|---|
+| `npm run dev` | Development server on port 3000 |
+| `npm run build` / `npm start` | Production build and server |
+| `npm run lint` / `npm run typecheck` | ESLint and TypeScript |
+| `npm test` | Unit tests (vitest) |
+| `npm run shots` | Screenshots of each screen into `docs/media/screens/`. Needs `npm run dev` running and a local Google Chrome |
+
+A Postman collection of the API is in [`postman/`](postman/). The API contract is in [docs/API.md](docs/API.md).
 
 ## Deploy
 
-`render.yaml` deploys the app as a single Node web service on [Render](https://render.com). Set the same variables as in `.env.example` in the Render dashboard.
+`render.yaml` defines a single Node web service on [Render](https://render.com) (free plan), with health check `/api/health`. Set the secret variables in the Render dashboard: `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `NEXT_PUBLIC_PAYPAL_CLIENT_ID`, `BENEFICIARY_EMAIL`, `BENEFICIARY_NAME`, `AI_API_KEY` and `APP_URL`.
+
+The free disk is ephemeral and the instance sleeps when idle. Sessions do not survive a redeploy.
+
+## Tests
+
+`npm test` runs 71 unit tests in 7 files: money, lexicon, fines, judge queue, AI parsing, PayPal calls, and settlement.
 
 ## Project layout
 
 ```
-src/app/          pages and API routes (jars, players, PayPal, sessions, SSE events, receipts)
-src/lib/          pure logic: money, lexicon, rules schema, fines, i18n, demo script
-src/server/       PayPal client, AI calls, in-memory store, settlement
-src/components/   jar animation, fine cards, PayPal hold button, scoreboard, mic
+src/app/          pages (home, new jar, join, live session, end, receipt) and API routes
+src/components/   jar animation (GSAP coin drop), fine cards, PayPal hold button, scoreboard, mic button
+src/lib/          pure logic: money, lexicon, rules schema, fines, demo script, i18n, env
+src/lib/client/   browser side: API calls, player id, speech recognition, session hook
+src/server/       PayPal client, settlement, AI calls, judge queue, in-memory store
 tests/            vitest unit tests
+scripts/          screenshot script (npm run shots)
 postman/          API collection
-docs/             Devpost text, demo script, decisions, media
+docs/             API, design, decisions, AI providers, Devpost text, media
 ```
+
+## What works
+
+Built in one day for the hackathon. Working today:
+
+- Creating a jar with house rules in plain language. The AI compiles them into a rule table that the creator confirms.
+- A PayPal sandbox hold per player: an `AUTHORIZE` order, approval with the JS SDK, then the authorization.
+- A live session with speech recognition in Chrome or Edge, or type mode, judged by the AI or by the word list.
+- A partial capture of the exact fines at the end, and a void for clean players.
+- Objections: any player can object within 30 seconds. Other players vote keep or drop within 20 seconds. Low-confidence fines start contested.
+- Cross-talk guard: the same word from two players within 3 seconds fines only the earliest.
+- A creator multiplier toggle, when the rules define one.
+- A solo test run with one player.
+- Recognition kept working with the Chrome tab hidden behind a full-screen game on Windows 11.
+- A public receipt page and an end-of-session report per player.
+- One light, English-only theme.
+
+## Known limits
+
+- Speech recognition works in Chrome and Edge, in English (en-US) only. Other browsers need type mode.
+- One device per player. There is no speaker separation.
+- The judge was checked on a small set of sentences and is not benchmarked. LM Studio and Ollama are not tested in this build.
+- Sessions live in memory on one instance, with JSON snapshots. They do not survive a redeploy.
+- No login. Each browser keeps its player id in localStorage. Someone holding a copied id can post utterances and votes in that jar, but cannot move money beyond holds that player approved.
+- Family mode (a parent's hold covering sponsored players) exists in the engine and the API, but is hidden in the UI. See Roadmap.
+- The word list is small (about 85 roots). Lexicon mode misses most context.
+- Sandbox only. Live PayPal would need a review of the payee model, fees and terms.
 
 ## Roadmap
 
 Nothing here is a promise.
 
-- Optional announcements in a Discord or voice-chat channel ("💸 Marco: $0.50, jar at $3.25").
-- PayPal webhooks instead of polling for capture status.
-- Shared jars that run for a week (a "no-swearing month" for an office), using reauthorization.
-- More languages and a proper evaluation set for the judge.
+- Family mode in the UI: sponsored players with no PayPal account, and a cleaner word on each fine card. The engine support exists.
+- Other UI languages and speech recognition languages. The app is English only now.
+- A shareable PNG card, an Open Graph image and a hero GIF.
+- Webhooks for capture status instead of direct calls.
+- Server-side speech transcription (Whisper).
+- Discord posting of fines.
+- An evaluation set for the judge, and `npm run eval:judge`.
 
 ## Contributing
 
@@ -155,6 +184,6 @@ MIT, see [LICENSE](LICENSE).
 Swear Jar is made by THUND3RR.
 
 - [PayPal REST APIs](https://developer.paypal.com/api/rest/) (Orders v2, Payments v2) and the [PayPal JS SDK](https://developer.paypal.com/sdk/js/), sandbox environment.
-- Open models served by [Groq](https://groq.com) (free tier) or run locally with [LM Studio](https://lmstudio.ai), for the rule compiler, the live judge and the report.
-- [Next.js](https://nextjs.org), [Tailwind CSS](https://tailwindcss.com), [zod](https://zod.dev) and the other dependencies in `package.json`.
+- Open models served by [Groq](https://groq.com) (free tier): `gpt-oss-20b` and `gpt-oss-120b`.
+- [Next.js](https://nextjs.org), [Tailwind CSS](https://tailwindcss.com), [zod](https://zod.dev), [GSAP](https://gsap.com) and the other dependencies in `package.json`.
 - Hosted on [Render](https://render.com).
