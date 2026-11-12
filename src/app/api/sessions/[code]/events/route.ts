@@ -21,6 +21,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ code: st
           cleanup();
         }
       };
+      // A 2 KB comment first: some layers hold small chunks before flushing a stream.
+      send(`: ${" ".repeat(2048)}\n\n`);
       send(`retry: 2000\nevent: state\ndata: ${JSON.stringify(publicView(s, viewer))}\n\n`);
       const unsub = subscribe(code, viewer, (view) => send(`event: state\ndata: ${JSON.stringify(view)}\n\n`));
       const ping = setInterval(() => send(`: ping\n\n`), 15000);
