@@ -1,0 +1,652 @@
+{
+  "info": {
+    "_postman_id": "5f1c2a7e-swearjar-0001",
+    "name": "Swear Jar API",
+    "description": "Routes from docs/API.md. Run folders in order; test scripts fill code, playerId, orderId, receiptId.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health & config",
+      "item": [
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "health"
+              ]
+            },
+            "description": "Server status, AI mode, model, PayPal configured flag and currency (never a key)."
+          },
+          "response": []
+        },
+        {
+          "name": "Config",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/config",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "config"
+              ]
+            },
+            "description": "Public values for the browser: PayPal client id, currency, beneficiary name, AI mode."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Jar setup",
+      "item": [
+        {
+          "name": "Create jar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/jars",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "jars"
+              ]
+            },
+            "description": "Creates a jar; the AI compiles the rules (not confirmed yet). Saves code and playerId.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Friday dinner\",\n  \"mode\": \"party\",\n  \"capCents\": 2000,\n  \"rulesText\": \"No swearing at the table. Mild word 50 cents, strong word 1 euro.\",\n  \"creatorName\": \"Alex\",\n  \"creatorLang\": \"en\",\n  \"beneficiaryEmail\": \"friend@example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code < 300) {",
+                  "    const j = pm.response.json();",
+                  "    ['code', 'playerId', 'orderId', 'receiptId'].forEach(k => { if (j[k]) pm.collectionVariables.set(k, j[k]); });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Recompile rules",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/jars/{{code}}/rules",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "jars",
+                "{{code}}",
+                "rules"
+              ]
+            },
+            "description": "Creator only: recompiles the rules from new text.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"playerId\": \"{{playerId}}\",\n  \"action\": \"recompile\",\n  \"rulesText\": \"No swearing at the table. Mild word 1 euro, strong word 2 euro.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Confirm rules",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/jars/{{code}}/rules",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "jars",
+                "{{code}}",
+                "rules"
+              ]
+            },
+            "description": "Creator only: confirms the compiled rules so the session can start.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"playerId\": \"{{playerId}}\",\n  \"action\": \"confirm\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Join jar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/jars/{{code}}/players",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "jars",
+                "{{code}}",
+                "players"
+              ]
+            },
+            "description": "Adds a player to the jar; sponsorId is optional and only used in family mode. Saves playerId.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sam\",\n  \"lang\": \"en\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code < 300) {",
+                  "    const j = pm.response.json();",
+                  "    ['code', 'playerId', 'orderId', 'receiptId'].forEach(k => { if (j[k]) pm.collectionVariables.set(k, j[k]); });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "PayPal hold",
+      "item": [
+        {
+          "name": "Create order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/paypal/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "paypal",
+                "orders"
+              ]
+            },
+            "description": "Creates an AUTHORIZE order for the player hold; the buyer must approve it in the PayPal popup. Saves orderId.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{code}}\",\n  \"playerId\": \"{{playerId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code < 300) {",
+                  "    const j = pm.response.json();",
+                  "    ['code', 'playerId', 'orderId', 'receiptId'].forEach(k => { if (j[k]) pm.collectionVariables.set(k, j[k]); });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Authorize order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/paypal/orders/{{orderId}}/authorize",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "paypal",
+                "orders",
+                "{{orderId}}",
+                "authorize"
+              ]
+            },
+            "description": "Authorizes the approved order and places the hold; run only after the buyer approved.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{code}}\",\n  \"playerId\": \"{{playerId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Live session",
+      "item": [
+        {
+          "name": "Get session",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/sessions/{{code}}?playerId={{playerId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "sessions",
+                "{{code}}"
+              ],
+              "query": [
+                {
+                  "key": "playerId",
+                  "value": "{{playerId}}"
+                }
+              ]
+            },
+            "description": "Current public session state, as seen by one player."
+          },
+          "response": []
+        },
+        {
+          "name": "Session events (SSE)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/sessions/{{code}}/events?playerId={{playerId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "sessions",
+                "{{code}}",
+                "events"
+              ],
+              "query": [
+                {
+                  "key": "playerId",
+                  "value": "{{playerId}}"
+                }
+              ]
+            },
+            "description": "Server-Sent Events stream: state on connect and on every change, ping every 15 s."
+          },
+          "response": []
+        },
+        {
+          "name": "Start session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/sessions/{{code}}/start",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "sessions",
+                "{{code}}",
+                "start"
+              ]
+            },
+            "description": "Creator only: starts the session (rules confirmed, at least one hold).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"playerId\": \"{{playerId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Submit utterance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/sessions/{{code}}/utterances",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "sessions",
+                "{{code}}",
+                "utterances"
+              ]
+            },
+            "description": "Sends a transcribed sentence; returns the instant lexicon hit count as maybe.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"playerId\": \"{{playerId}}\",\n  \"text\": \"Porca miseria, ho perso il treno\",\n  \"ts\": 1731400000000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Object to fine",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/sessions/{{code}}/objections",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "sessions",
+                "{{code}}",
+                "objections"
+              ]
+            },
+            "description": "Objects to a fine during the objection window.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"playerId\": \"{{playerId}}\",\n  \"fineId\": \"fine-id-from-session\",\n  \"action\": \"object\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Vote on objection",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/sessions/{{code}}/objections",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "sessions",
+                "{{code}}",
+                "objections"
+              ]
+            },
+            "description": "Votes keep or drop on an objected fine.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"playerId\": \"{{playerId}}\",\n  \"fineId\": \"fine-id-from-session\",\n  \"action\": \"vote\",\n  \"vote\": \"keep\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Set multiplier",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/sessions/{{code}}/multiplier",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "sessions",
+                "{{code}}",
+                "multiplier"
+              ]
+            },
+            "description": "Creator only: sets the fine multiplier; null clears it.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"playerId\": \"{{playerId}}\",\n  \"multiplierId\": \"x2\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Settlement",
+      "item": [
+        {
+          "name": "End session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/sessions/{{code}}/end",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "sessions",
+                "{{code}}",
+                "end"
+              ]
+            },
+            "description": "Ends the session and settles the holds (idempotent; retries settle_failed players). Saves receiptId.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"playerId\": \"{{playerId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code < 300) {",
+                  "    const j = pm.response.json();",
+                  "    ['code', 'playerId', 'orderId', 'receiptId'].forEach(k => { if (j[k]) pm.collectionVariables.set(k, j[k]); });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Receipts",
+      "item": [
+        {
+          "name": "Get receipt",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/receipts/{{receiptId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "receipts",
+                "{{receiptId}}"
+              ]
+            },
+            "description": "Returns the receipt of a settled session."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "code",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "playerId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "orderId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "receiptId",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#222"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1600" height="900" fill="#ffffff"/>
+
+  <!-- Title -->
+  <text x="800" y="80" font-size="56" font-weight="700" text-anchor="middle" fill="#111">Swear Jar — how it works</text>
+
+  <!-- Left column: phones -->
+  <rect x="40" y="190" width="340" height="100" rx="16" fill="#ffffff" stroke="#222" stroke-width="3"/>
+  <text x="210" y="252" font-size="34" font-weight="700" text-anchor="middle" fill="#111">Phone A</text>
+
+  <rect x="40" y="330" width="340" height="100" rx="16" fill="#ffffff" stroke="#222" stroke-width="3"/>
+  <text x="210" y="392" font-size="34" font-weight="700" text-anchor="middle" fill="#111">Phone B</text>
+
+  <rect x="40" y="470" width="340" height="100" rx="16" fill="#ffffff" stroke="#222" stroke-width="3"/>
+  <text x="210" y="532" font-size="34" font-weight="700" text-anchor="middle" fill="#111">Phone C</text>
+
+  <text x="210" y="625" font-size="28" text-anchor="middle" fill="#333">speech → text in the</text>
+  <text x="210" y="660" font-size="28" text-anchor="middle" fill="#333">browser</text>
+  <text x="210" y="695" font-size="28" text-anchor="middle" fill="#333">(Web Speech API)</text>
+
+  <!-- Center: server -->
+  <rect x="540" y="170" width="460" height="640" rx="20" fill="#f4f4f5" stroke="#222" stroke-width="3"/>
+  <text x="770" y="330" font-size="36" font-weight="700" text-anchor="middle" fill="#111">Swear Jar server</text>
+  <text x="770" y="375" font-size="28" text-anchor="middle" fill="#333">(Next.js)</text>
+  <text x="770" y="460" font-size="28" text-anchor="middle" fill="#333">house rules · fines</text>
+  <text x="770" y="500" font-size="28" text-anchor="middle" fill="#333">cap · SSE</text>
+
+  <!-- Right column: PayPal (blue) and AI (violet) -->
+  <rect x="1100" y="130" width="460" height="210" rx="16" fill="#ffffff" stroke="#0070e0" stroke-width="3"/>
+  <text x="1330" y="200" font-size="32" font-weight="700" text-anchor="middle" fill="#0070e0">PayPal Orders v2</text>
+  <text x="1330" y="245" font-size="28" text-anchor="middle" fill="#333">create (AUTHORIZE)</text>
+  <text x="1330" y="285" font-size="28" text-anchor="middle" fill="#333">→ authorize</text>
+
+  <rect x="1100" y="380" width="460" height="210" rx="16" fill="#ffffff" stroke="#0070e0" stroke-width="3"/>
+  <text x="1330" y="450" font-size="32" font-weight="700" text-anchor="middle" fill="#0070e0">PayPal Payments v2</text>
+  <text x="1330" y="495" font-size="28" text-anchor="middle" fill="#333">partial capture</text>
+  <text x="1330" y="535" font-size="28" text-anchor="middle" fill="#333">(final_capture) | void</text>
+
+  <rect x="1100" y="630" width="460" height="210" rx="16" fill="#ffffff" stroke="#7c3aed" stroke-width="3"/>
+  <text x="1330" y="700" font-size="32" font-weight="700" text-anchor="middle" fill="#7c3aed">AI (OpenAI-compatible)</text>
+  <text x="1330" y="745" font-size="28" text-anchor="middle" fill="#333">Groq free | LM Studio local</text>
+  <text x="1330" y="790" font-size="28" text-anchor="middle" fill="#444">rule compiler ·</text>
+  <text x="1330" y="825" font-size="28" text-anchor="middle" fill="#444">live judge · report</text>
+
+  <!-- Arrows: phones to server -->
+  <line x1="380" y1="240" x2="540" y2="240" stroke="#222" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="380" y1="380" x2="540" y2="380" stroke="#222" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="380" y1="520" x2="540" y2="520" stroke="#222" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <!-- Arrows: server to PayPal and AI -->
+  <line x1="1000" y1="235" x2="1100" y2="235" stroke="#222" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="1000" y1="485" x2="1100" y2="485" stroke="#222" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="1000" y1="735" x2="1100" y2="735" stroke="#222" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <!-- Footer -->
+  <text x="800" y="885" font-size="30" text-anchor="middle" fill="#333">A swear jar that listens. Pay only for what you said.</text>
+</svg>
