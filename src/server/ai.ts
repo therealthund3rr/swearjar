@@ -204,6 +204,7 @@ Mentions: quoting or discussing a word ("the word 'cazzo' comes from Latin", "he
 Guidelines:
 - "quote" MUST be an exact substring of that item's "text", copied character for character. "normalized" is the base word (e.g. "cazzo"). "reason" is one short sentence (max 120 chars).
 - Judge by use, not by spelling: report dodges such as "p0rc0 d*o", and asterisks from speech recognition ("c***o", "f**k") are real swears.
+- A multi-word swear is ONE hit with the whole phrase as quote: "porco dio", "porco d***", "porca madonna", "dio cane", "madonna santa" when used as an oath. Italian blasphemy (any insult or oath involving God, Jesus, the Madonna or saints, including censored or clipped forms like "porco d***", "porco d", "dio c***") is tier "blasphemy" when that tier exists, never "mild".
 - Understand dialects and slang: Piedmontese, Neapolitan, Roman, Sicilian, mixed languages, gamer slang.
 - Legal euphemisms are NOT swears: "porca miseria", "mannaggia", "cavolo", "fudge", "shoot", "darn".
 - Hate speech against a group of people always gets tier_id "slur".
