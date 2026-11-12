@@ -54,7 +54,7 @@ paypal, paypal-orders-v2, paypal-payments-v2, paypal-js-sdk, groq, gpt-oss, next
 ## Links
 - Repo: https://github.com/therealthund3rr/swearjar
 - Live demo: https://swearjar-4wsb.onrender.com (free instance: the first load can take about a minute while it wakes up)
-- Video: VIDEO_URL_HERE
+- Video: https://www.youtube.com/watch?v=5XaYjLzjvic
 
 ## Testing instructions for judges
 - **Sandbox only. No real money moves.**

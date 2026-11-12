@@ -6,7 +6,7 @@
 A swear jar that listens. Put a PayPal hold on the jar, talk, and pay only for what you said.
 
 **Live demo:** https://swearjar-4wsb.onrender.com (free Render instance: the first load can take about a minute)
-**Video:** VIDEO_URL_HERE
+**Video:** https://www.youtube.com/watch?v=5XaYjLzjvic
 
 Built for the [PayPal AI Hackathon](https://paypalaihackathon.devpost.com) 2026. **Sandbox only. No real money.**
 
