@@ -32,7 +32,7 @@ export async function POST(req: Request) {
       },
       status: "live",
       players: {
-        [a]: { id: a, name: "Nico", lang: "en-US", isCreator: true, sponsorId: null, hold: hold(a), joinedAt: now },
+        [a]: { id: a, name: "Sam", lang: "en-US", isCreator: true, sponsorId: null, hold: hold(a), joinedAt: now },
         [b]: { id: b, name: "Ale", lang: "en-US", isCreator: false, sponsorId: null, hold: hold(b), joinedAt: now },
       },
       fines: [],

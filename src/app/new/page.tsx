@@ -59,7 +59,7 @@ export default function NewJar() {
   const { config, error: cfgError } = useConfig();
   const [name, setName] = useState("");
   const [jarName, setJarName] = useState("");
-  const [mode, setMode] = useState<Mode>("party");
+  const mode: Mode = "party"; // Family mode hidden in the preview
   const [cap, setCap] = useState(10);
   const [email, setEmail] = useState("");
   const [rulesText, setRulesText] = useState("");
@@ -188,22 +188,8 @@ export default function NewJar() {
         <span>{t("Jar name")}</span>
         <input className="input" value={jarName} maxLength={40} placeholder="FIFA night" onChange={(e) => setJarName(e.target.value)} />
       </label>
-      <div className="field">
-        <span style={{ fontWeight: 600, fontSize: "0.9rem", display: "block", marginBottom: 4 }}>Mode</span>
-        <div className="seg" role="group" aria-label="Mode">
-          <button type="button" className="btn" aria-pressed={mode === "party"} onClick={() => setMode("party")}>
-            🍕 Party
-          </button>
-          <button type="button" className="btn" aria-pressed={mode === "family"} onClick={() => setMode("family")}>
-            🏡 Family
-          </button>
-        </div>
-        <p className="muted small" style={{ marginTop: 6 }}>
-          {mode === "party"
-            ? "Everyone pays only their own fines into the group fund."
-            : "A parent pays and adds sponsored players (no PayPal needed). Kind tone, cleaner alternatives, no ranking. The jar and mic are always visible: it never listens in secret."}
-        </p>
-      </div>
+      {/* Family mode exists in the engine but is hidden in the hackathon preview (docs/DECISIONS.md). */}
+      <p className="muted small">🍕 Party mode: everyone pays only their own fines into the group fund.</p>
       <label className="field">
         <span>
           {t("Cap per player")} ({currency}, 1–50)

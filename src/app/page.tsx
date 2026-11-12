@@ -18,7 +18,7 @@ export default function Home() {
       <div className="center stack" style={{ paddingTop: 24 }}>
         <div style={{ fontSize: "4rem" }} aria-hidden="true">🫙</div>
         <h1>{t("A swear jar that listens. Pay only for what you said.")}</h1>
-        <p className="muted">Party or family: put money on the line, talk, and settle the bill with PayPal.</p>
+        <p className="muted">Game night with friends: put money on the line, talk, and settle the bill with PayPal.</p>
       </div>
       <div className="stack">
         <Link href="/new" className="btn primary block">
