@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import QRCode from "qrcode";
 import { api, errMsg, useConfig } from "@/lib/client/api";
 import { savePlayer } from "@/lib/client/player";
@@ -9,11 +9,10 @@ import { useT } from "@/lib/i18n";
 import { formatMoney } from "@/lib/money";
 import type { AiMode, Mode } from "@/lib/types";
 import type { RuleSet } from "@/lib/rules";
-import { LANGS, defaultLang } from "@/components/helpers";
+import { SPEECH_LANG } from "@/components/helpers";
 
 const EXAMPLES = [
-  { label: "IT", text: "Bestemmie 2€, parolacce 50 cent, 'cavolo' è gratis, doppio durante i rigori" },
-  { label: "EN", text: "Mild swears 25 cents, strong 1 dollar, 'fudge' is free, double during overtime" },
+  { label: "Example", text: "Mild swears 25 cents, strong swears $1, blasphemy $2, 'fudge' is free, double during overtime" },
 ];
 
 function RulesTable({ rules, currency }: { rules: RuleSet; currency: string }) {
@@ -59,7 +58,6 @@ export default function NewJar() {
   const router = useRouter();
   const { config, error: cfgError } = useConfig();
   const [name, setName] = useState("");
-  const [lang, setLang] = useState("en-US");
   const [jarName, setJarName] = useState("");
   const [mode, setMode] = useState<Mode>("party");
   const [cap, setCap] = useState(10);
@@ -70,8 +68,6 @@ export default function NewJar() {
   const [created, setCreated] = useState<{ code: string; playerId: string; rules: RuleSet; aiMode: AiMode } | null>(null);
   const [confirmed, setConfirmed] = useState(false);
   const [qr, setQr] = useState<string | null>(null);
-
-  useEffect(() => setLang(defaultLang()), []);
 
   const currency = config?.currency ?? "USD";
   const capOk = Number.isFinite(cap) && cap >= 1 && cap <= 50;
@@ -87,7 +83,7 @@ export default function NewJar() {
         capCents: Math.round(cap * 100),
         rulesText: rulesText.trim(),
         creatorName: name.trim(),
-        creatorLang: lang,
+        creatorLang: SPEECH_LANG,
         ...(email.trim() ? { beneficiaryEmail: email.trim() } : {}),
       });
       savePlayer(r.code, r.playerId);
@@ -189,16 +185,6 @@ export default function NewJar() {
         <input className="input" value={name} maxLength={30} onChange={(e) => setName(e.target.value)} autoComplete="given-name" />
       </label>
       <label className="field">
-        <span>{t("Language")} (microphone)</span>
-        <select className="input" value={lang} onChange={(e) => setLang(e.target.value)}>
-          {LANGS.map((l) => (
-            <option key={l.value} value={l.value}>
-              {l.label}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label className="field">
         <span>{t("Jar name")}</span>
         <input className="input" value={jarName} maxLength={40} placeholder="FIFA night" onChange={(e) => setJarName(e.target.value)} />
       </label>
@@ -214,7 +200,7 @@ export default function NewJar() {
         </div>
         <p className="muted small" style={{ marginTop: 6 }}>
           {mode === "party"
-            ? "Chi sporca paga: everyone pays only their own fines into the group fund."
+            ? "Everyone pays only their own fines into the group fund."
             : "A parent pays and adds sponsored players (no PayPal needed). Kind tone, cleaner alternatives, no ranking. The jar and mic are always visible: it never listens in secret."}
         </p>
       </div>
@@ -242,7 +228,7 @@ export default function NewJar() {
       </div>
       <label className="field">
         <span>{t("House rules")}</span>
-        <textarea className="input" value={rulesText} onChange={(e) => setRulesText(e.target.value)} placeholder="Write the prices in plain language, any language." />
+        <textarea className="input" value={rulesText} onChange={(e) => setRulesText(e.target.value)} placeholder="Write the prices in plain English." />
       </label>
       <div className="stack" style={{ marginTop: 0 }}>
         <span className="muted small">Examples (tap to use):</span>

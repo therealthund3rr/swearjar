@@ -1,22 +1,8 @@
 import type { Cents } from "@/lib/money";
 import type { Fine, Player, PublicSession } from "@/lib/types";
 
-export const LANGS: { value: string; label: string }[] = [
-  { value: "en-US", label: "English (en-US)" },
-  { value: "it-IT", label: "Italiano (it-IT)" },
-  { value: "es-ES", label: "Español (es-ES)" },
-  { value: "fr-FR", label: "Français (fr-FR)" },
-  { value: "de-DE", label: "Deutsch (de-DE)" },
-];
-
-export function defaultLang(): string {
-  try {
-    const l = navigator.language || "en-US";
-    return LANGS.find((x) => x.value.toLowerCase() === l.toLowerCase())?.value ?? LANGS.find((x) => x.value.startsWith(l.slice(0, 2)))?.value ?? "en-US";
-  } catch {
-    return "en-US";
-  }
-}
+/** Speech language: English only. */
+export const SPEECH_LANG = "en-US";
 
 type AnyFine = Pick<Fine, "playerId" | "status" | "priceCents">;
 
@@ -50,7 +36,7 @@ export function holdLabel(status: string | undefined): string {
     case "on_hold":
       return "On hold";
     case "pending":
-      return "Pending";
+      return "Waiting for approval";
     case "captured":
       return "Captured";
     case "voided":

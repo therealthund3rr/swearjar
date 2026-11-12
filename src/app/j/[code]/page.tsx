@@ -11,33 +11,21 @@ import { AiBadge } from "@/components/AiBadge";
 import { Money } from "@/components/Money";
 import { PayPalHoldButton } from "@/components/PayPalHoldButton";
 import { SandboxBadge } from "@/components/SandboxBadge";
-import { LANGS, defaultLang, holdAmount, holdLabel, sponsoredOf } from "@/components/helpers";
+import { SPEECH_LANG, holdAmount, holdLabel, sponsoredOf } from "@/components/helpers";
 
-function NameLangForm({ submitLabel, onSubmit, busy }: { submitLabel: string; onSubmit: (name: string, lang: string) => void; busy: boolean }) {
+function NameForm({ submitLabel, onSubmit, busy }: { submitLabel: string; onSubmit: (name: string) => void; busy: boolean }) {
   const [name, setName] = useState("");
-  const [lang, setLang] = useState("en-US");
-  useEffect(() => setLang(defaultLang()), []);
   return (
     <form
       className="stack"
       onSubmit={(e) => {
         e.preventDefault();
-        if (name.trim()) onSubmit(name.trim(), lang);
+        if (name.trim()) onSubmit(name.trim());
       }}
     >
       <label className="field">
         <span>Name</span>
         <input className="input" value={name} maxLength={30} onChange={(e) => setName(e.target.value)} />
-      </label>
-      <label className="field">
-        <span>Language (microphone)</span>
-        <select className="input" value={lang} onChange={(e) => setLang(e.target.value)}>
-          {LANGS.map((l) => (
-            <option key={l.value} value={l.value}>
-              {l.label}
-            </option>
-          ))}
-        </select>
       </label>
       <button className="btn primary block" type="submit" disabled={busy || !name.trim()}>
         {submitLabel}
@@ -68,15 +56,18 @@ export default function Lobby() {
 
   useEffect(() => {
     if (!session) return;
-    if (session.status === "live") router.replace(`/s/${code}`);
-    else if (session.status === "settling" || session.status === "ended") router.replace(`/s/${code}/end`);
-  }, [session, code, router]);
+    const meNow = playerId ? session.players[playerId] : undefined;
+    if (session.status === "live") {
+      // A late joiner must approve their hold here first.
+      if (meNow && (meNow.sponsorId || meNow.hold?.status === "on_hold")) router.replace(`/s/${code}`);
+    } else if (session.status === "settling" || session.status === "ended") router.replace(`/s/${code}/end`);
+  }, [session, playerId, code, router]);
 
-  async function join(name: string, lang: string) {
+  async function join(name: string) {
     setBusy(true);
     setError(null);
     try {
-      const r = await api<{ playerId: string }>(`/api/jars/${code}/players`, { name, lang });
+      const r = await api<{ playerId: string }>(`/api/jars/${code}/players`, { name, lang: SPEECH_LANG });
       savePlayer(code, r.playerId);
       setPlayerId(r.playerId);
     } catch (e) {
@@ -86,12 +77,12 @@ export default function Lobby() {
     }
   }
 
-  async function addSponsored(name: string, lang: string) {
+  async function addSponsored(name: string) {
     if (!playerId) return;
     setBusy(true);
     setError(null);
     try {
-      await api(`/api/jars/${code}/players`, { name, lang, sponsorId: playerId });
+      await api(`/api/jars/${code}/players`, { name, lang: SPEECH_LANG, sponsorId: playerId });
       setShowSponsor(false);
       await refresh();
     } catch (e) {
@@ -152,7 +143,7 @@ export default function Lobby() {
         {playerId && <p className="notice">This device was in the jar before but the server no longer knows you. Join again.</p>}
         <div className="card stack">
           <h2>Join this jar</h2>
-          <NameLangForm submitLabel={t("Join")} onSubmit={join} busy={busy} />
+          <NameForm submitLabel={t("Join")} onSubmit={join} busy={busy} />
           {error && <p className="error" role="alert">{error}</p>}
         </div>
       </main>
@@ -164,7 +155,8 @@ export default function Lobby() {
   const myHold = me.hold?.status ?? "none";
   const holding = myHold === "on_hold";
   const amount = isSponsored ? 0 : holdAmount(session, me.id);
-  const anyHold = players.some((p) => p.hold?.status === "on_hold");
+  const missingHolds = players.filter((p) => !p.sponsorId && p.hold?.status !== "on_hold");
+  const allHeld = missingHolds.length === 0;
   const isCreator = me.isCreator;
   const speaker = sponsored.find((p) => p.id === listenAs) ? listenAs! : me.id;
 
@@ -219,7 +211,7 @@ export default function Lobby() {
           <h2>Sponsored players</h2>
           <p className="muted small">Kids have no PayPal. Add them here: your hold covers their cap too. Add them before you approve the hold.</p>
           {showSponsor ? (
-            <NameLangForm submitLabel="Add sponsored player" onSubmit={addSponsored} busy={busy} />
+            <NameForm submitLabel="Add sponsored player" onSubmit={addSponsored} busy={busy} />
           ) : (
             <button className="btn" onClick={() => setShowSponsor(true)}>
               ＋ Add a sponsored player
@@ -268,8 +260,11 @@ export default function Lobby() {
                   <span className="badge">covered by {sponsor.name}</span>
                 ) : (
                   <span className={`badge ${p.hold?.status === "on_hold" ? "good" : "warn"}`}>
-                    {p.hold?.status === "on_hold" ? "🔒 " : ""}
-                    {holdLabel(p.hold?.status)}
+                    {p.hold?.status === "on_hold" ? (
+                      <>🔒 On hold <Money cents={p.hold.amountCents} currency={jar.currency} /></>
+                    ) : (
+                      holdLabel(p.hold?.status)
+                    )}
                   </span>
                 )}
               </li>
@@ -281,12 +276,18 @@ export default function Lobby() {
       </section>
 
       {error && <p className="error" role="alert">{error}</p>}
-      {isCreator ? (
+      {session.status === "live" ? (
+        <p className="notice" role="status">The session is already live. Approve your hold above to join in.</p>
+      ) : isCreator ? (
         <div className="stack">
-          <button className="btn primary block" onClick={start} disabled={busy || !anyHold}>
+          <button className="btn primary block" onClick={start} disabled={busy || !allHeld}>
             {t("Start session")}
           </button>
-          {!anyHold && <p className="muted small center">Start unlocks when at least one hold is on.</p>}
+          {!allHeld && (
+            <p className="muted small center" role="status">
+              Waiting for holds: {missingHolds.map((p) => p.name).join(", ")}
+            </p>
+          )}
         </div>
       ) : (
         <p className="muted center" role="status">
