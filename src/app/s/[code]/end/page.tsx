@@ -7,7 +7,7 @@ import { getPlayerId } from "@/lib/client/player";
 import { useSession } from "@/lib/client/useSession";
 import { Money } from "@/components/Money";
 import { SandboxBadge } from "@/components/SandboxBadge";
-import { owedBy, sponsoredOf } from "@/components/helpers";
+import { owedBy, settleLabel, sponsoredOf } from "@/components/helpers";
 import type { Player, PublicSession } from "@/lib/types";
 
 function Report({ session, p }: { session: PublicSession; p: Player }) {
@@ -104,21 +104,21 @@ export default function End() {
           <section key={p.id} className="card stack" aria-label={`Result for ${p.name}`}>
             <div className="row between">
               <h2>{p.name}</h2>
-              {status === "captured" && <span className="badge good">Captured</span>}
-              {status === "voided" && <span className="badge good">Voided</span>}
+              {status === "captured" && <span className="badge good">{settleLabel("captured", amount, jar.currency)}</span>}
+              {status === "voided" && <span className="badge good">{settleLabel("voided", 0, jar.currency)}</span>}
               {status === "settle_failed" && <span className="badge bad">Settle failed</span>}
               {!status && hold?.status === "on_hold" && <span className="badge warn">On hold</span>}
             </div>
             {status === "captured" && (
               <>
-                <div className="money big">Captured <Money cents={amount} currency={jar.currency} /></div>
+                <div className="money big">{settleLabel("captured", amount, jar.currency)}</div>
                 {captureId && <div className="small">Capture ID: <span className="mono">{captureId}</span></div>}
               </>
             )}
-            {status === "voided" && <div className="money" style={{ fontSize: "1.4rem" }}>Voided — clean mouth! 😇</div>}
+            {status === "voided" && <div className="money" style={{ fontSize: "1.4rem" }}>{settleLabel("voided", 0, jar.currency)}</div>}
             {status === "settle_failed" && (
               <div className="stack">
-                <p className="error">Settle failed{res?.error ? `: ${res.error}` : ""}</p>
+                <p className="error">{settleLabel("settle_failed", 0, jar.currency)}{res?.error ? `: ${res.error}` : ""}</p>
                 <div>
                   <button className="btn" onClick={retry} disabled={busy}>
                     {busy ? "Retrying…" : "Retry"}
@@ -131,7 +131,7 @@ export default function End() {
                 On hold: <Money cents={hold.amountCents} currency={jar.currency} />
               </div>
             )}
-            {noHold && !status && <div className="muted">No PayPal hold: nothing to settle.</div>}
+            {noHold && !status && <div className="muted">{hold?.status === "pending" ? "Hold never approved: nothing to settle." : "No PayPal hold: nothing to settle."}</div>}
             <Report session={session} p={p} />
             {sponsored.map((s) => (
               <div key={s.id} style={{ marginLeft: 12 }}>

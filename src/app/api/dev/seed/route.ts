@@ -24,15 +24,15 @@ export async function POST(req: Request) {
         currency: env().currency,
         beneficiaryEmail: null,
         beneficiaryName: "Pizza fund (sandbox)",
-        rulesText: "Bestemmie 2€, parolacce 50 cent, 'cavolo' è gratis, doppio durante i rigori",
-        rules: { ...defaultRuleSet(cap), free_terms: ["cavolo"], multipliers: [{ id: "penalty", when: "During a penalty kick", factor: 2 }] },
+        rulesText: "Mild swears 25 cents, strong swears $1, blasphemy $2, 'fudge' is free, double during penalty kicks",
+        rules: { ...defaultRuleSet(cap), free_terms: ["fudge"], multipliers: [{ id: "penalty", when: "During a penalty kick", factor: 2 }] },
         rulesConfirmed: true,
         creatorPlayerId: a,
         createdAt: now,
       },
       status: "live",
       players: {
-        [a]: { id: a, name: "Nico", lang: "it-IT", isCreator: true, sponsorId: null, hold: hold(a), joinedAt: now },
+        [a]: { id: a, name: "Nico", lang: "en-US", isCreator: true, sponsorId: null, hold: hold(a), joinedAt: now },
         [b]: { id: b, name: "Ale", lang: "en-US", isCreator: false, sponsorId: null, hold: hold(b), joinedAt: now },
       },
       fines: [],
@@ -56,7 +56,7 @@ export async function POST(req: Request) {
         [b]: { playerId: b, status: "voided", amountCents: 0 },
       };
       s.reports = {
-        [a]: { title: "The Sailor", summary: "Three fines, one of them in fluent Piedmontese.", mostUsed: "c***o", alternatives: ["cavolo", "mannaggia"] },
+        [a]: { title: "The Sailor", summary: "Three fines, one of them hidden behind asterisks.", mostUsed: "f**k", alternatives: ["fudge", "shoot"] },
         [b]: { title: "The Diplomat", summary: "Not a single fine. The pizza is on the others.", mostUsed: null, alternatives: [] },
       };
     }

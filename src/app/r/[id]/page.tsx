@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { api, errMsg } from "@/lib/client/api";
 import { Money } from "@/components/Money";
 import { SandboxBadge } from "@/components/SandboxBadge";
+import { settleLabel } from "@/components/helpers";
 import type { Receipt } from "@/lib/types";
 
 export default function ReceiptPage() {
@@ -54,7 +55,7 @@ export default function ReceiptPage() {
               <tr key={i}>
                 <td><strong>{l.name}</strong></td>
                 <td>
-                  {l.status === "captured" ? "Captured" : l.status === "voided" ? "Voided" : "Settle failed"}
+                  {settleLabel(l.status, l.amountCents, r.currency)}
                   {l.captureId && <div className="mono small muted">{l.captureId}</div>}
                 </td>
                 <td>{l.fines}</td>

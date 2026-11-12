@@ -1,4 +1,4 @@
-import type { Cents } from "@/lib/money";
+import { formatMoney, type Cents } from "@/lib/money";
 import type { Fine, Player, PublicSession } from "@/lib/types";
 
 /** Speech language: English only. */
@@ -29,6 +29,13 @@ const TIER_COLOURS: Record<string, string> = {
 };
 export function tierColour(tierId: string): string {
   return TIER_COLOURS[tierId] ?? "var(--coin-other)";
+}
+
+/** Final settle label: "Captured $1.50" / "Voided — clean mouth! 😇" / "Settle failed". */
+export function settleLabel(status: "captured" | "voided" | "settle_failed", cents: Cents, currency: string): string {
+  if (status === "captured") return `Captured ${formatMoney(cents, currency)}`;
+  if (status === "voided") return "Voided — clean mouth! 😇";
+  return "Settle failed";
 }
 
 export function holdLabel(status: string | undefined): string {

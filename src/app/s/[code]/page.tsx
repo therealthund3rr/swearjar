@@ -13,7 +13,7 @@ import { Jar } from "@/components/Jar";
 import { MicButton } from "@/components/MicButton";
 import { Money } from "@/components/Money";
 import { Scoreboard } from "@/components/Scoreboard";
-import { owedBy } from "@/components/helpers";
+import { SPEECH_LANG, owedBy } from "@/components/helpers";
 
 function blip() {
   try {
@@ -49,10 +49,13 @@ export default function Live() {
   const [muted, setMuted] = useState(false);
   const [demo, setDemo] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [holdBlocked, setHoldBlocked] = useState(false);
   const [confirmEnd, setConfirmEnd] = useState(false);
   const [ending, setEnding] = useState(false);
   const listener = useRef<Listener | null>(null);
   const speakerRef = useRef<string | null>(null);
+  const autoStarted = useRef(false);
+  const holdBlockedRef = useRef(false);
   const prevCoins = useRef<number | null>(null);
   const mutedRef = useRef(false);
   mutedRef.current = muted;
@@ -67,7 +70,6 @@ export default function Live() {
   const me = session && playerId ? session.players[playerId] : undefined;
   const speaker = session && listenAs && session.players[listenAs]?.sponsorId === playerId ? session.players[listenAs] : me;
   speakerRef.current = speaker?.id ?? null;
-  const speakerLang = speaker?.lang ?? "en-US";
 
   // Redirects by status
   useEffect(() => {
@@ -85,26 +87,45 @@ export default function Live() {
       try {
         await api(`/api/sessions/${code}/utterances`, { playerId: id, text: text.trim(), ts: Date.now() });
       } catch (e) {
-        setError(errMsg(e));
+        const msg = errMsg(e);
+        if (/approve your paypal hold/i.test(msg)) {
+          // Show this once, stop the mic so it does not repeat on every speech result.
+          if (!holdBlockedRef.current) {
+            holdBlockedRef.current = true;
+            setHoldBlocked(true);
+            listener.current?.stop();
+          }
+          return;
+        }
+        setError(msg);
       }
     },
     [code],
   );
 
-  // Speech listener (recreated when the speaker's language changes)
+  // Speech listener (English only)
   useEffect(() => {
     if (!ready) return;
     if (!speechSupported()) {
       setMic("unsupported");
       return;
     }
-    const l = createListener({ lang: speakerLang, onFinal: (x) => void sendUtterance(x), onInterim: setInterim, onStatus: setMic });
+    const l = createListener({ lang: SPEECH_LANG, onFinal: (x) => void sendUtterance(x), onInterim: setInterim, onStatus: setMic });
     listener.current = l;
     return () => {
       l.stop();
       listener.current = null;
     };
-  }, [ready, speakerLang, sendUtterance]);
+  }, [ready, sendUtterance]);
+
+  // Auto-start the mic once the session is live (if the browser allows it without a tap)
+  const sessionLive = session?.status === "live";
+  useEffect(() => {
+    if (!ready || !sessionLive || autoStarted.current || holdBlockedRef.current) return;
+    if (!listener.current || !speechSupported()) return;
+    autoStarted.current = true;
+    listener.current.start();
+  }, [ready, sessionLive, mic]);
 
   // Demo script
   const live = session?.status === "live";
@@ -212,8 +233,19 @@ export default function Live() {
           </section>
 
           <section className="card stack" aria-label="Microphone">
+            {holdBlocked && (
+              <div className="notice" role="alert">
+                Approve your PayPal hold first. The mic is off.{" "}
+                <Link href={`/j/${code}`}><strong>Back to the lobby to approve your hold</strong></Link>
+              </div>
+            )}
+            {!holdBlocked && (mic === "off" || mic === "denied") && (
+              <button className="btn primary block" style={{ fontSize: "1.2rem", padding: "18px" }} onClick={() => listener.current?.start()}>
+                🎙 Tap to start listening
+              </button>
+            )}
             <MicButton status={mic} onStart={() => listener.current?.start()} onStop={() => listener.current?.stop()} />
-            {speaker.id !== me.id && <p className="small">Listening as <strong>{speaker.name}</strong> ({speakerLang}).</p>}
+            {speaker.id !== me.id && <p className="small">Listening as <strong>{speaker.name}</strong> (English).</p>}
             {interim && <p className="muted" style={{ fontStyle: "italic" }}>{interim}</p>}
             <form
               className="row"
