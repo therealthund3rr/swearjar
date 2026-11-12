@@ -179,7 +179,10 @@ export default function Lobby() {
           ) : (
             <>
               <div>
-                Hold to approve: <Money cents={amount} currency={jar.currency} big />
+                <div className="badge warn">No hold yet</div>
+                <div style={{ marginTop: 6 }}>
+                  Approve a hold of <Money cents={amount} currency={jar.currency} big /> with PayPal to play
+                </div>
                 {family && sponsored.length > 0 && (
                   <div className="muted small">
                     {formatMoney(jar.capCents, jar.currency)} for you + {sponsored.length} sponsored {sponsored.length === 1 ? "player" : "players"}
