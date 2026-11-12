@@ -1,0 +1,56 @@
+name: Bug report
+description: Something does not work as expected
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. **Never paste PayPal credentials, access tokens or transcripts of other people.**
+        For payment or security vulnerabilities, do not use this form: see the Security tab (private reporting).
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and device
+      placeholder: "Chrome 131 on Android 15"
+    validations:
+      required: true
+  - type: dropdown
+    id: input
+    attributes:
+      label: Input mode
+      options:
+        - Microphone
+        - Type mode
+        - Demo script (?demo=1)
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - PayPal hold / capture / void
+        - AI judge (wrong fine or missed swear)
+        - Rule compiler
+        - Live jar / realtime
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: "1. ...\n2. ..."
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+  - type: textarea
+    id: happened
+    attributes:
+      label: What happened
+      description: For a wrong fine, include the sentence (mask it if you prefer) and the house rules.
+    validations:
+      required: true

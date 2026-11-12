@@ -1,0 +1,34 @@
+# Dependencies and builds
+node_modules
+.next
+out
+dist
+build
+coverage
+*.tsbuildinfo
+next-env.d.ts
+
+# Secrets and local data
+.env
+.env.*
+!.env.example
+.data/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Editor and OS
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.sw?
+
+# Local notes and tool folders: never part of the repo
+# (CLAUDE.md is ignored like in Buddy; remove this line if you want the spec public)
+CLAUDE.md
+AGENTS.md
+docs/plans/
+.claude/

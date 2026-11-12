@@ -1,0 +1,24 @@
+name: Feature request
+description: Suggest an idea
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Swear Jar never records audio, never charges more than the approved hold, and never turns hateful slurs into a game. Ideas that break these will not be accepted.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like Swear Jar to do?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you considered

@@ -1,0 +1,37 @@
+services:
+  - type: web
+    name: swearjar
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: PAYPAL_API_BASE
+        value: https://api-m.sandbox.paypal.com
+      - key: CURRENCY
+        value: USD
+      - key: DATA_DIR
+        value: /tmp/swearjar
+      - key: AI_BASE_URL
+        value: https://api.groq.com/openai/v1
+      - key: AI_MODEL_FAST
+        value: llama-3.1-8b-instant
+      - key: AI_MODEL_SMART
+        value: openai/gpt-oss-120b
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: NEXT_PUBLIC_PAYPAL_CLIENT_ID
+        sync: false
+      - key: BENEFICIARY_EMAIL
+        sync: false
+      - key: BENEFICIARY_NAME
+        sync: false
+      - key: AI_API_KEY
+        sync: false
+      - key: APP_URL
+        sync: false

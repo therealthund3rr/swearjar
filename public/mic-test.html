@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mic background test</title>
+<style>
+  body { font: 16px system-ui, sans-serif; margin: 16px; background: #111; color: #eee; }
+  button { font-size: 18px; padding: 10px 16px; }
+  #log { white-space: pre-wrap; font-family: ui-monospace, monospace; font-size: 13px; margin-top: 12px; }
+  .hidden { color: #f90; } .final { color: #6f6; }
+</style>
+</head>
+<body>
+<h1>Speech recognition: background tab test</h1>
+<p>Press Start, speak, then switch to a full-screen game for 1–2 minutes and keep talking (say numbers out loud: "one", "two"...). Come back: every line marked <b class="hidden">[HIDDEN]</b> was recognized while the tab was not visible.</p>
+<label>Language <select id="lang"><option>it-IT</option><option>en-US</option></select></label>
+<button id="go">Start</button>
+<div id="log"></div>
+<script>
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const log = (msg, cls) => {
+    const t = new Date().toLocaleTimeString();
+    const vis = document.visibilityState === "visible" ? "" : "[HIDDEN] ";
+    const div = document.createElement("div");
+    if (vis) div.className = "hidden"; else if (cls) div.className = cls;
+    div.textContent = `${t} ${vis}${msg}`;
+    document.getElementById("log").prepend(div);
+  };
+  document.addEventListener("visibilitychange", () => log(`visibility -> ${document.visibilityState}`));
+  document.getElementById("go").onclick = () => {
+    if (!SR) return log("SpeechRecognition not supported in this browser");
+    let restarts = 0;
+    const start = () => {
+      const r = new SR();
+      r.lang = document.getElementById("lang").value;
+      r.continuous = true;
+      r.interimResults = false;
+      r.onresult = (e) => {
+        for (let i = e.resultIndex; i < e.results.length; i++)
+          if (e.results[i].isFinal) log(`FINAL: ${e.results[i][0].transcript}`, "final");
+      };
+      r.onerror = (e) => log(`error: ${e.error}`);
+      r.onend = () => { restarts++; log(`ended -> restart #${restarts}`); setTimeout(start, 250); };
+      r.start();
+      log("started");
+    };
+    start();
+  };
+</script>
+</body>
+</html>
