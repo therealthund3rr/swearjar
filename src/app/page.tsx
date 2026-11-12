@@ -1,103 +1,68 @@
-import Image from "next/image";
+"use client";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useT } from "@/lib/i18n";
 
 export default function Home() {
+  const t = useT();
+  const router = useRouter();
+  const [code, setCode] = useState("");
+  const steps = [
+    { icon: "🔒", title: t("Hold"), text: "Everyone approves a PayPal authorization hold, for example $10. Nothing is charged yet." },
+    { icon: "🎙", title: t("Talk"), text: "Each phone listens to its own owner. An AI judge reads the words in context and applies your house rules." },
+    { icon: "🧾", title: t("Settle"), text: "PayPal captures only what each person said. Clean mouths get their hold voided." },
+  ];
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+    <main className="wrap stack">
+      <div className="center stack" style={{ paddingTop: 24 }}>
+        <div style={{ fontSize: "4rem" }} aria-hidden="true">🫙</div>
+        <h1>{t("A swear jar that listens. Pay only for what you said.")}</h1>
+        <p className="muted">Party or family: put money on the line, talk, and settle the bill with PayPal.</p>
+      </div>
+      <div className="stack">
+        <Link href="/new" className="btn primary block">
+          {t("Create a jar")}
+        </Link>
+        <form
+          className="row"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (code.length === 6) router.push(`/j/${code}`);
+          }}
+        >
+          <label className="field" style={{ flex: 1, minWidth: 160 }}>
+            <span className="sr">Jar code</span>
+            <input
+              className="input mono"
+              placeholder="ABC123"
+              maxLength={6}
+              autoCapitalize="characters"
+              autoComplete="off"
+              value={code}
+              onChange={(e) => setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""))}
+              style={{ letterSpacing: "0.25em", textAlign: "center", fontSize: "1.3rem" }}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+          </label>
+          <button className="btn" type="submit" disabled={code.length !== 6}>
+            {t("Join with code")}
+          </button>
+        </form>
+      </div>
+      <ol className="stack" style={{ listStyle: "none", padding: 0 }}>
+        {steps.map((s, i) => (
+          <li key={s.title} className="card row" style={{ flexWrap: "nowrap", alignItems: "flex-start" }}>
+            <span style={{ fontSize: "2rem" }} aria-hidden="true">{s.icon}</span>
+            <div>
+              <h2>
+                {i + 1}. {s.title}
+              </h2>
+              <p className="muted">{s.text}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+      <footer className="center muted small">{t("Sandbox only. No real money.")}</footer>
+    </main>
   );
 }

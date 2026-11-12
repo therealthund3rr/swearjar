@@ -2,6 +2,7 @@ import "server-only";
 import fs from "node:fs";
 import path from "node:path";
 import { customAlphabet } from "nanoid";
+import { z } from "zod";
 import { aiMode, env } from "@/lib/env";
 import type { PublicSession, Receipt, Session } from "@/lib/types";
 
@@ -154,6 +155,12 @@ export async function handle(fn: () => Promise<unknown> | unknown): Promise<Resp
     return out instanceof Response ? out : Response.json(out ?? { ok: true });
   } catch (err) {
     if (err instanceof HttpError) return Response.json({ error: err.message }, { status: err.status });
+    if (err instanceof z.ZodError) return Response.json({ error: "Invalid request" }, { status: 400 });
+    // PayPalError messages carry only status, error name and debug id (never tokens): safe to show.
+    if (err instanceof Error && err.name === "PayPalError") {
+      console.error(err.message);
+      return Response.json({ error: err.message }, { status: 502 });
+    }
     console.error(err);
     return Response.json({ error: "Internal error" }, { status: 500 });
   }
