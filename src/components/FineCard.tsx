@@ -2,9 +2,11 @@
 import { useEffect, useState } from "react";
 import type { Mode, PublicSession } from "@/lib/types";
 import { Money } from "./Money";
+import css from "./FineCard.module.css";
 
 type F = PublicSession["fines"][number];
 
+/** A penalty slip: the barred word, the price, and a quiet reason. */
 export function FineCard({
   fine,
   session,
@@ -30,46 +32,48 @@ export function FineCard({
   const tier = session.jar.rules.tiers.find((t) => t.id === fine.tierId);
   const who = session.players[fine.playerId]?.name ?? "?";
   const slur = fine.tierId === "slur";
-  const canObject = fine.status !== "dropped" && !fine.objection && now < fine.objectableUntil;
+  const dropped = fine.status === "dropped";
+  const canObject = !dropped && !fine.objection && now < fine.objectableUntil;
   const obj = fine.objection;
   const voting = !!obj && now < obj.deadline;
   const myVote = obj?.votes[meId];
   const secs = Math.max(0, Math.ceil(((obj?.deadline ?? 0) - now) / 1000));
+  const keeps = obj ? Object.values(obj.votes).filter((v) => v === "keep").length : 0;
+  const drops = obj ? Object.values(obj.votes).filter((v) => v === "drop").length : 0;
   return (
-    <article className={`card fine ${fine.status}`}>
-      <div className="row between">
-        <span className="word">{slur ? "⚠ hateful language" : fine.masked}</span>
-        <Money cents={fine.priceCents} currency={session.jar.currency} />
-      </div>
-      <div className="row">
-        <span className="badge">{tier?.label ?? fine.tierId}</span>
-        <span className={`badge ${fine.status === "active" ? "good" : fine.status === "contested" ? "warn" : "bad"}`}>
-          {fine.status === "active" ? "Active" : fine.status === "contested" ? "Contested" : "Dropped"}
+    <article className={`card ${css.slip} ${dropped ? css.dropped : ""}`}>
+      <div className={css.top}>
+        <span className={`censor ${css.bar} ${dropped ? css.struck : ""}`}>{slur ? "hateful language" : fine.masked}</span>
+        <span className={`${css.price} ${dropped ? css.struck : ""}`}>
+          <Money cents={fine.priceCents} currency={session.jar.currency} />
         </span>
-        {fine.multiplier > 1 && <span className="badge">×{fine.multiplier}</span>}
-        <span className="muted small">{who}</span>
       </div>
-      {fine.reason && <div className="small muted">{fine.reason}</div>}
-      {mode === "family" && fine.alternative && !slur && <div className="small">💡 Try “{fine.alternative}” instead</div>}
-      {canObject && (
-        <div>
-          <button className="btn sm" onClick={() => onObject(fine.id)}>
-            ✋ Objection!
+      <div className={css.meta}>
+        <span className={css.who}>{who}</span>
+        <span className="badge">{tier?.label ?? fine.tierId}</span>
+        {fine.multiplier > 1 && <span className="badge warn">x{fine.multiplier}</span>}
+        {fine.status === "contested" && <span className="badge warn">Under review</span>}
+        {dropped && <span className="badge bad">Dropped</span>}
+        {canObject && (
+          <button className={css.pill} onClick={() => onObject(fine.id)}>
+            Objection!
           </button>
-        </div>
-      )}
+        )}
+      </div>
+      {fine.reason && <div className={css.reason}>{fine.reason}</div>}
+      {mode === "family" && fine.alternative && !slur && <div className={css.reason}>Try &ldquo;{fine.alternative}&rdquo; instead</div>}
       {obj && (
-        <div className="notice" role="group" aria-label="Objection vote">
-          {session.players[obj.byPlayerId]?.name ?? "Someone"} objected.{" "}
-          {voting ? `Vote now (${secs}s)` : "Voting closed."} Keep {Object.values(obj.votes).filter((v) => v === "keep").length} · Drop{" "}
-          {Object.values(obj.votes).filter((v) => v === "drop").length}
+        <div className={css.vote} role="group" aria-label="Objection vote">
+          <span>
+            {session.players[obj.byPlayerId]?.name ?? "Someone"} objected. {voting ? `Vote now (${secs}s)` : "Voting closed."} Keep {keeps}, drop {drops}.
+          </span>
           {voting && fine.playerId !== meId && (
-            <div className="row" style={{ marginTop: 8 }}>
-              <button className="btn sm" aria-pressed={myVote === "keep"} onClick={() => onVote(fine.id, "keep")}>
-                👍 Keep{myVote === "keep" ? " ✓" : ""}
+            <div className="row">
+              <button className={`btn sm ${myVote === "keep" ? css.pressed : ""}`} aria-pressed={myVote === "keep"} onClick={() => onVote(fine.id, "keep")}>
+                Keep
               </button>
-              <button className="btn sm" aria-pressed={myVote === "drop"} onClick={() => onVote(fine.id, "drop")}>
-                👎 Drop{myVote === "drop" ? " ✓" : ""}
+              <button className={`btn sm ${myVote === "drop" ? css.pressed : ""}`} aria-pressed={myVote === "drop"} onClick={() => onVote(fine.id, "drop")}>
+                Drop
               </button>
             </div>
           )}

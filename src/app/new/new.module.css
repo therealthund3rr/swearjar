@@ -1,0 +1,12 @@
+.board { display: grid; }
+.tier { display: grid; grid-template-columns: 1fr auto; gap: 2px 16px; padding: 12px 0; border-bottom: 2.5px dashed var(--ink); }
+.tier:last-child { border-bottom: 0; }
+.label { font-size: 1.6rem; }
+.price { font-size: 2.6rem; line-height: 1; text-align: right; grid-row: span 2; align-self: center; }
+.desc { font-size: 0.88rem; color: var(--ink-soft); }
+.free { display: inline-block; text-decoration: line-through; text-decoration-thickness: 3px; text-decoration-color: var(--bleep); border: 2px solid var(--ink); border-radius: 999px; padding: 2px 12px; font-weight: 800; background: #fff; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.ready { display: grid; gap: 24px; align-items: center; }
+@media (min-width: 700px) { .ready { grid-template-columns: 1fr auto; } }
+.qr { background: #fff; border: var(--line) solid var(--ink); border-radius: 12px; padding: 8px; width: 236px; height: 236px; }
+.qr img { display: block; width: 100%; height: 100%; }

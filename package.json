@@ -8,10 +8,12 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "shots": "node scripts/shots.mjs"
   },
   "dependencies": {
     "@paypal/react-paypal-js": "^10.6.1",
+    "gsap": "^3.15.1",
     "nanoid": "^6.0.2",
     "next": "15.5.29",
     "openai": "^7.55.0",
@@ -30,6 +32,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.5.29",
+    "playwright-core": "^1.65.0",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^5.1.0"

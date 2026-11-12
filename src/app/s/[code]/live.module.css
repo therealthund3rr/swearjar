@@ -1,0 +1,18 @@
+.page { display: grid; gap: 20px; }
+.head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.title { font-size: clamp(2rem, 7vw, 3.4rem); }
+.cols { display: grid; gap: 20px; grid-template-columns: 1fr; align-items: start; }
+.left, .right { display: grid; gap: 16px; align-content: start; }
+.jarWrap { max-width: 230px; margin: 0 auto; width: 100%; }
+.totalRow { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin: 4px 0 10px; }
+.mic { display: grid; gap: 10px; }
+.caption { font-size: 0.95rem; color: var(--ink); font-weight: 600; min-height: 1.4em; opacity: 0.75; }
+.typeForm { display: flex; gap: 8px; align-items: flex-end; }
+.small { min-height: 40px; padding: 6px 12px; }
+.foot { display: grid; gap: 16px; }
+.on { background: var(--ink); color: var(--yolk); }
+@media (min-width: 900px) {
+  .cols { grid-template-columns: minmax(340px, 400px) 1fr; gap: 28px; }
+  .left { position: sticky; top: 16px; }
+  .jarWrap { max-width: 340px; }
+}

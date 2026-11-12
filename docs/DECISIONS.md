@@ -16,3 +16,6 @@ One line per decision taken during the build that `CLAUDE.md` did not settle. Ne
 - 2026-11-12: Spec said the session can start when >=1 player has a hold; that let a player without a hold collect fines that could never be captured (found in the first real test). Now every paying player must be on hold before start, and utterances from a player whose payer has no hold are rejected (409).
 - 2026-11-12: English-only UI, speech recognition (en-US) and AI texts for the hackathon preview; multilingual support is on the roadmap.
 - 2026-11-12: Family mode is hidden in the UI for the hackathon preview (the product owner wants the focus on game nights with friends). The engine keeps sponsored-player support and its tests; docs list Family mode on the roadmap only.
+- 2026-11-12: Visual direction "Yellow card" (docs/DESIGN.md): one light theme, Archivo self-hosted through next/font, censor bars as the signature. Dark mode dropped. GSAP added for the coin drop only (physical feedback when a fine lands); Lenis and React Bits not used.
+- 2026-11-12: A solo session is allowed ("Start a solo test run") so a judge with one sandbox account can try the whole flow.
+- 2026-11-12: playwright-core (dev) drives the locally installed Chrome for `npm run shots`; no browser download.

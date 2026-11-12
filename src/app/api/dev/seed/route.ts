@@ -49,6 +49,31 @@ export async function POST(req: Request) {
     if (body.ended) {
       s.status = "ended";
       s.endedAt = now;
+      // Three fines that add up to the captured amount, so the bill is consistent in screenshots.
+      s.fines = (
+        [
+          ["shit", "s**t", "mild", 25],
+          ["fuck", "f**k", "strong", 100],
+          ["f***", "f***", "strong", 150],
+        ] as const
+      ).map(([quote, masked, tierId, priceCents], i) => ({
+        id: newId(),
+        playerId: a,
+        utteranceIndex: i,
+        quote,
+        masked,
+        normalized: quote,
+        tierId,
+        priceCents,
+        multiplier: 1,
+        confidence: 0.9,
+        reason: "Used as a swear.",
+        status: "active" as const,
+        objection: null,
+        source: "ai" as const,
+        ts: now - 60_000 + i * 1000,
+        objectableUntil: now - 30_000,
+      }));
       s.players[a].hold = { ...hold(a), status: "captured", captureId: "SEED-CAPTURE-1", capturedCents: 275 };
       s.players[b].hold = { ...hold(b), status: "voided", voidedAt: now };
       s.settle = {

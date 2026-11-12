@@ -1,0 +1,7 @@
+.row { display: grid; grid-template-columns: 1fr auto; gap: 4px 16px; padding: 14px 0; border-bottom: 2.5px dashed var(--ink); align-items: center; }
+.row:last-of-type { border-bottom: 0; }
+.stamp { font-size: 1.15rem; padding: 6px 16px; transform: rotate(-2deg); }
+.right { text-align: right; display: grid; justify-items: end; gap: 4px; }
+.total { display: flex; justify-content: space-between; align-items: baseline; border-top: 4px solid var(--ink); padding-top: 14px; margin-top: 6px; }
+.reports { display: grid; gap: 16px; }
+@media (min-width: 800px) { .reports { grid-template-columns: 1fr 1fr; } }

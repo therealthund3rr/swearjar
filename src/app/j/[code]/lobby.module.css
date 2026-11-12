@@ -1,0 +1,11 @@
+.head { display: grid; gap: 10px; }
+.invite { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+.code { font-size: 2.6rem; font-weight: 900; font-stretch: 68%; letter-spacing: 0.1em; line-height: 1; }
+.hold { padding: 22px; }
+.bigHead { font-size: clamp(2rem, 7vw, 3rem); }
+.tile { background: #fff; border: 2.5px solid var(--ink); border-radius: 14px; padding: 16px; }
+.stampWrap { display: grid; gap: 12px; justify-items: center; text-align: center; }
+.stamp { color: var(--hold); border: 6px solid var(--hold); border-radius: 12px; padding: 6px 22px; font-size: clamp(2.6rem, 11vw, 4.6rem); font-weight: 900; font-stretch: 68%; text-transform: uppercase; line-height: 1.05; transform: rotate(-3deg); }
+.players { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 8px; }
+.player { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 12px; border: 2px solid var(--ink); border-radius: 10px; background: #fff; }
+.pname { font-weight: 800; }

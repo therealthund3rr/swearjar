@@ -1,0 +1,12 @@
+.slip { display: grid; gap: 8px; padding: 14px 16px; }
+.dropped { opacity: 0.6; }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.bar { font-size: 1.7rem; line-height: 1.25; padding: 0.05em 0.45em; }
+.struck { text-decoration: line-through; text-decoration-thickness: 3px; }
+.price { font-size: 2rem; line-height: 1; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 0.92rem; }
+.who { font-weight: 700; }
+.reason { font-size: 0.9rem; color: var(--ink-soft); }
+.pill { border: 2px solid var(--ink); background: var(--ink); color: var(--yolk); border-radius: 999px; padding: 2px 14px; font: inherit; font-size: 0.85rem; font-weight: 800; cursor: pointer; }
+.vote { border-top: 2px dashed var(--ink); padding-top: 8px; font-size: 0.92rem; display: grid; gap: 8px; }
+.pressed { background: var(--ink); color: var(--yolk); }

@@ -6,13 +6,14 @@ import { api, errMsg } from "@/lib/client/api";
 import { getListenAs, getPlayerId } from "@/lib/client/player";
 import { createListener, speechSupported, type Listener, type MicStatus } from "@/lib/client/speech";
 import { useSession } from "@/lib/client/useSession";
-import { useT } from "@/lib/i18n";
 import { AiBadge } from "@/components/AiBadge";
 import { FineCard } from "@/components/FineCard";
 import { Jar } from "@/components/Jar";
 import { MicButton } from "@/components/MicButton";
 import { Money } from "@/components/Money";
+import { SandboxBadge } from "@/components/SandboxBadge";
 import { Scoreboard } from "@/components/Scoreboard";
+import css from "./live.module.css";
 import { SPEECH_LANG, owedBy } from "@/components/helpers";
 
 function blip() {
@@ -34,7 +35,6 @@ function blip() {
 }
 
 export default function Live() {
-  const t = useT();
   const router = useRouter();
   const params = useParams<{ code: string }>();
   const code = (params.code ?? "").toUpperCase();
@@ -180,7 +180,7 @@ export default function Live() {
 
   if (loadError && !session) {
     return (
-      <main className="wrap stack center">
+      <main className="wrap stack">
         <h1>Jar not found</h1>
         <p className="muted">{loadError}</p>
         <Link href="/" className="btn">Home</Link>
@@ -198,58 +198,51 @@ export default function Live() {
   const multipliers = jar.rules.multipliers;
 
   return (
-    <main className="wrap wide stack">
-      <div className="row between">
+    <main className={`wrap wide ${css.page}`}>
+      <header className={css.head}>
         <div>
-          <h1 style={{ fontSize: "1.6rem" }}>{jar.name}</h1>
-          <span className="muted small">Code <span className="mono">{code}</span> · {jar.mode === "family" ? "🏡 Family" : "🍕 Party"}</span>
+          <h1 className={css.title}>{jar.name}</h1>
+          <span className="muted small">Code {code}</span>
         </div>
         <div className="row">
           <AiBadge aiMode={session.aiMode} aiModel={session.aiModel} aiBusy={session.aiBusy} />
+          <SandboxBadge />
           <button className="btn sm" aria-pressed={muted} onClick={() => setMuted((m) => !m)}>
-            {muted ? "🔇 Sound off" : "🔊 Sound on"}
+            {muted ? "Sound off" : "Sound on"}
           </button>
         </div>
-      </div>
+      </header>
 
-      <div className="grid2">
-        <div className="stack">
-          <div className="card">
+      <div className={css.cols}>
+        <div className={css.left}>
+          <div className={css.jarWrap}>
             <Jar fines={fines} />
           </div>
 
-          <section className="card stack" aria-label="My total">
-            <div className="row between">
-              <h2>{speaker.id === me.id ? "Your total" : `${speaker.name}'s total`}</h2>
-              <span>
-                <Money cents={owed} currency={jar.currency} big /> <span className="muted">of </span>
-                <Money cents={cap} currency={jar.currency} />
-              </span>
+          <section className="card" aria-label="My total">
+            <div className="small muted">{speaker.id === me.id ? "Your total" : `${speaker.name}'s total`}</div>
+            <div className={css.totalRow}>
+              <Money cents={owed} currency={jar.currency} big />
+              <span className="muted">of <Money cents={cap} currency={jar.currency} /></span>
             </div>
             <div className={`progress${pct >= 100 ? " full" : ""}`} role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label="Share of your cap used">
               <div style={{ width: `${pct}%` }} />
             </div>
-            {pct >= 100 && <p className="small">Cap reached: you can’t be charged more than your hold.</p>}
+            {pct >= 100 && <p className="small" style={{ marginTop: 8 }}>Cap reached: you can’t be charged more than your hold.</p>}
           </section>
 
-          <section className="card stack" aria-label="Microphone">
+          <section className={css.mic} aria-label="Microphone">
             {holdBlocked && (
               <div className="notice" role="alert">
                 Approve your PayPal hold first. The mic is off.{" "}
                 <Link href={`/j/${code}`}><strong>Back to the lobby to approve your hold</strong></Link>
               </div>
             )}
-            {!holdBlocked && (mic === "off" || mic === "denied") && (
-              <button className="btn primary block" style={{ fontSize: "1.2rem", padding: "18px" }} onClick={() => listener.current?.start()}>
-                🎙 Tap to start listening
-              </button>
-            )}
             <MicButton status={mic} onStart={() => listener.current?.start()} onStop={() => listener.current?.stop()} />
             {speaker.id !== me.id && <p className="small">Listening as <strong>{speaker.name}</strong> (English).</p>}
-            {interim && <p className="muted" style={{ fontStyle: "italic" }}>{interim}</p>}
+            {interim && <p className={css.caption}>hearing: {interim}</p>}
             <form
-              className="row"
-              style={{ flexWrap: "nowrap" }}
+              className={css.typeForm}
               onSubmit={(e) => {
                 e.preventDefault();
                 void sendUtterance(typed);
@@ -257,43 +250,23 @@ export default function Live() {
               }}
             >
               <label className="field" style={{ flex: 1 }}>
-                <span className={unsupported ? "" : "sr"}>{unsupported ? "Type what you say" : "Type mode"}</span>
-                <input className="input" value={typed} onChange={(e) => setTyped(e.target.value)} placeholder="Type mode: write what you said…" />
+                <span className={unsupported ? "" : "small muted"}>Or type what you said</span>
+                <input className={`input ${css.small}`} value={typed} onChange={(e) => setTyped(e.target.value)} placeholder="Say it here" />
               </label>
-              <button className="btn" type="submit" disabled={!typed.trim()} style={{ alignSelf: "flex-end" }}>
+              <button className="btn sm" type="submit" disabled={!typed.trim()}>
                 Send
               </button>
             </form>
-            <p className="muted small">No audio is recorded or uploaded: only the finished text of what you say is sent.</p>
           </section>
-
-          {me.isCreator && multipliers.length > 0 && (
-            <section className="card stack" aria-label="Multiplier">
-              <h2>Multiplier</h2>
-              <div className="row">
-                {multipliers.map((m) => (
-                  <button
-                    key={m.id}
-                    className="btn sm"
-                    aria-pressed={session.activeMultiplierId === m.id}
-                    onClick={() => void post("multiplier", { playerId: me.id, multiplierId: session.activeMultiplierId === m.id ? null : m.id })}
-                  >
-                    {session.activeMultiplierId === m.id ? "✓ " : ""}{m.when} ×{m.factor}
-                  </button>
-                ))}
-              </div>
-            </section>
-          )}
-          <Scoreboard session={session} meId={me.id} />
         </div>
 
-        <div className="stack">
+        <div className={css.right}>
           <h2>Fines</h2>
           {error && <p className="error" role="alert">{error}</p>}
           {feed.length === 0 ? (
-            <div className="card center muted">
-              <div style={{ fontSize: "2.5rem" }} aria-hidden="true">😇</div>
-              No fines yet. Keep it clean!
+            <div className="card">
+              <h3>Clean so far</h3>
+              <p className="muted">No fines yet. Keep it that way.</p>
             </div>
           ) : (
             feed.map((f) => (
@@ -308,11 +281,29 @@ export default function Live() {
               />
             ))
           )}
+          <Scoreboard session={session} meId={me.id} />
         </div>
       </div>
 
       {me.isCreator && (
-        <div className="card stack">
+        <footer className={`card flat ${css.foot}`}>
+          {multipliers.length > 0 && (
+            <div className="stack">
+              <strong>Multiplier</strong>
+              <div className="row">
+                {multipliers.map((m) => (
+                  <button
+                    key={m.id}
+                    className={`btn sm ${session.activeMultiplierId === m.id ? css.on : ""}`}
+                    aria-pressed={session.activeMultiplierId === m.id}
+                    onClick={() => void post("multiplier", { playerId: me.id, multiplierId: session.activeMultiplierId === m.id ? null : m.id })}
+                  >
+                    {m.when} x{m.factor}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           {confirmEnd ? (
             <div role="alertdialog" aria-label="Confirm end of session" className="stack">
               <strong>End the session now?</strong>
@@ -327,11 +318,13 @@ export default function Live() {
               </div>
             </div>
           ) : (
-            <button className="btn danger block" onClick={() => setConfirmEnd(true)}>
-              {t("End session & settle")}
-            </button>
+            <div>
+              <button className="btn danger" onClick={() => setConfirmEnd(true)}>
+                End session and settle
+              </button>
+            </div>
           )}
-        </div>
+        </footer>
       )}
     </main>
   );

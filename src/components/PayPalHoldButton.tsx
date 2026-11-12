@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
 import { api, errMsg } from "@/lib/client/api";
-import { SandboxBadge } from "./SandboxBadge";
 
 /** PayPal authorization hold: create order -> buyer approves -> server authorizes. */
 export function PayPalHoldButton({
@@ -26,7 +25,6 @@ export function PayPalHoldButton({
   }
   return (
     <div className="stack">
-      <SandboxBadge />
       <PayPalScriptProvider options={{ clientId, currency, intent: "authorize" }}>
         <PayPalButtons
           style={{ layout: "vertical", label: "pay" }}
@@ -48,7 +46,7 @@ export function PayPalHoldButton({
             }
           }}
           onError={(e) => setError(errMsg(e))}
-          onCancel={() => setError("Hold cancelled. You can try again.")}
+          onCancel={() => setError("Hold cancelled. Try again when you are ready.")}
         />
       </PayPalScriptProvider>
       {busy && <p className="muted">Confirming your hold with PayPal…</p>}

@@ -20,7 +20,7 @@ export default function ReceiptPage() {
 
   if (error) {
     return (
-      <main className="wrap stack center">
+      <main className="wrap stack">
         <h1>Receipt not found</h1>
         <p className="muted">{error}</p>
         <Link href="/" className="btn">Home</Link>
@@ -31,46 +31,36 @@ export default function ReceiptPage() {
 
   const total = r.lines.reduce((a, l) => a + (l.status === "captured" ? l.amountCents : 0), 0);
   return (
-    <main className="wrap stack">
-      <div className="row between">
-        <h1>Receipt</h1>
-        <SandboxBadge />
-      </div>
+    <main className="wrap stack" style={{ maxWidth: 480 }}>
+      <SandboxBadge />
       <div className="card stack">
-        <h2>{r.jarName}</h2>
-        <p className="muted">
-          {r.mode === "family" ? "🏡 Family" : "🍕 Party"} · paid to {r.beneficiaryName} · {new Date(r.endedAt).toLocaleString()}
-        </p>
-        <table className="rules">
-          <thead>
-            <tr>
-              <th>Player</th>
-              <th>Status</th>
-              <th>Fines</th>
-              <th style={{ textAlign: "right" }}>Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            {r.lines.map((l, i) => (
-              <tr key={i}>
-                <td><strong>{l.name}</strong></td>
-                <td>
-                  {settleLabel(l.status, l.amountCents, r.currency)}
-                  {l.captureId && <div className="mono small muted">{l.captureId}</div>}
-                </td>
-                <td>{l.fines}</td>
-                <td style={{ textAlign: "right" }}>
-                  <Money cents={l.status === "captured" ? l.amountCents : 0} currency={r.currency} />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <div className="row between">
-          <strong>Total captured</strong>
+        <h1 style={{ fontSize: "clamp(2.4rem, 11vw, 3.6rem)" }}>{r.jarName}</h1>
+        <p className="muted small">{new Date(r.endedAt).toLocaleString()} · paid to {r.beneficiaryName}</p>
+        <div>
+          {r.lines.map((l, i) => (
+            <div
+              key={i}
+              style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "2px 12px", alignItems: "center", padding: "10px 0", borderTop: "2.5px dashed var(--ink)" }}
+            >
+              <div>
+                <strong>{l.name}</strong>
+                <div className="small muted">{l.fines} {l.fines === 1 ? "fine" : "fines"}</div>
+              </div>
+              <div style={{ textAlign: "right", display: "grid", justifyItems: "end", gap: 2 }}>
+                <span className={`badge ${l.status === "captured" ? "hold" : l.status === "voided" ? "good" : "bad"}`}>
+                  {l.status === "voided" ? "Voided" : settleLabel(l.status, l.amountCents, r.currency)}
+                </span>
+                <Money cents={l.status === "captured" ? l.amountCents : 0} currency={r.currency} />
+                {l.captureId && <span className="small muted">{l.captureId}</span>}
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", borderTop: "4px solid var(--ink)", paddingTop: 12 }}>
+          <h2>Total</h2>
           <Money cents={total} currency={r.currency} big />
         </div>
-        <p className="muted small">Only amounts and statuses are shown. No transcripts are stored or published.</p>
+        <p className="muted small">PayPal sandbox. No transcript is stored.</p>
       </div>
     </main>
   );
