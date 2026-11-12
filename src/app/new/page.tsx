@@ -238,7 +238,7 @@ export default function NewJar() {
             aria-invalid={!emailOk}
           />
           <span className={emailOk ? "muted small" : "error small"} style={{ fontWeight: 400 }}>
-            {emailOk ? "Leave it empty to use the demo fund." : "That does not look like an email."}
+            {emailOk ? "Leave it empty to use the demo fund. It must be a different account from the ones the players pay with." : "That does not look like an email."}
           </span>
         </label>
         {cfgError && <p className="error">Cannot load config: {cfgError}</p>}

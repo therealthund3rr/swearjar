@@ -61,6 +61,7 @@ export default function ReceiptPage() {
           <Money cents={total} currency={r.currency} big />
         </div>
         <p className="muted small">PayPal sandbox. No transcript is stored.</p>
+        <p><Link className="btn" href="/">Back to home</Link></p>
       </div>
     </main>
   );
